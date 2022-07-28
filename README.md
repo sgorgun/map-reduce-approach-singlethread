@@ -1,4 +1,4 @@
-# Words frequency. MapReduce Approch
+# Words Frequency. MapReduce Approch
 
 Intermediate level task for practicing collection classes.
 
