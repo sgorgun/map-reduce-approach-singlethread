@@ -10,4 +10,4 @@ The task requires .NET 6 SDK installed.
 
 Using MapReduce approach to count the frequency of each word in an input text.
 
-![](images/map-reduce-words-frequency.png)
+![](Images/map-reduce-words-frequency.png)
