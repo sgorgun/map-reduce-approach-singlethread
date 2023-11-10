@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MapReduceApproach
@@ -9,8 +9,11 @@ namespace MapReduceApproach
     /// </summary>
     public sealed class MapReduceModel
     {
+        private readonly string[] words;
+        private int nodes;
+
         /// <summary>
-        /// Initialize instance of the class.
+        /// Initializes a new instance of the <see cref="MapReduceModel"/> class.
         /// </summary>
         /// <param name="words">Source words.</param>
         /// <param name="nodes">Count of the nodes for the words processing.</param>
@@ -19,17 +22,37 @@ namespace MapReduceApproach
         /// <exception cref="ArgumentOutOfRangeException">Thrown if nodes less than 0 or more than count of words.</exception>
         public MapReduceModel(string[] words, int nodes)
         {
-            throw new NotImplementedException();
+            this.words = words ?? throw new ArgumentNullException(nameof(words), "Words is null");
+
+            if (words.Length == 0)
+            {
+                throw new ArgumentException("Words array cannot be empty.");
+            }
+
+            if (nodes <= 0 || nodes > words.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(nodes), "Number of nodes should be between 0 and the number of words.");
+            }
+
+            this.nodes = nodes;
         }
 
         /// <summary>
-        /// Get or set counts of the nodes in MapReduce model.
+        /// Gets or sets get or set counts of the nodes in MapReduce model.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if nodes less than 0 or more than count of words.</exception>
         public int Nodes
         {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
+            get => this.nodes;
+            set
+            {
+                if (value < 0 || value > this.words.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Number of nodes should be between 0 and the number of words.");
+                }
+
+                this.nodes = value;
+            }
         }
 
         /// <summary>
@@ -38,11 +61,20 @@ namespace MapReduceApproach
         /// <returns>Information about of the word frequency in source array.</returns>
         /// <example>
         /// words: {"Serialize", "Json", ".NET", "open", "and", "deserialize", ".NET", "object", "with", "Json" }
-        /// result: {("Serialize", 1), ("Json", 2), (".NET", 2), ("open", 1), ("and", 1), ("deserialize", 1), ("object", 1), ("with", 1)}
+        /// result: {("Serialize", 1), ("Json", 2), (".NET", 2), ("open", 1), ("and", 1), ("deserialize", 1), ("object", 1), ("with", 1)}.
         /// </example>
         public IReadOnlyList<(string, int)> Process()
         {
-            throw new NotImplementedException();
+            var mapping = this.Map(this.words);
+            var shuffled = new Dictionary<string, IList<int>>();
+            this.Shuffle(mapping, shuffled);
+            var reducers = new List<(string, int)>();
+            foreach (var word in shuffled)
+            {
+                reducers.Add((word.Key, this.Reduce(word.Value)));
+            }
+
+            return reducers;
         }
 
         /// <summary>
@@ -52,11 +84,17 @@ namespace MapReduceApproach
         /// <returns>Dictionary where key is word and value is word frequency in the nodes.</returns>
         /// <example> for a single node:
         /// words: {"Serialize", "Json", ".NET", "open", "and", "deserialize", ".NET", "object", "with", "Json" }
-        /// result: {("Serialize", 1), ("Json", 1), (".NET", 1), ("open", 1), ("and", 1), ("deserialize", 1), (".NET", 1), ("object", 1), ("with", 1), ("Json", 1) }
+        /// result: {("Serialize", 1), ("Json", 1), (".NET", 1), ("open", 1), ("and", 1), ("deserialize", 1), (".NET", 1), ("object", 1), ("with", 1), ("Json", 1) }.
         /// </example>
         private IList<(string Key, int Value)> Map(string[] wordsInOneNode)
         {
-            throw new NotImplementedException();
+            IList<(string, int)> result = new List<(string, int)>();
+            foreach (var word in wordsInOneNode)
+            {
+                result.Add((word, 1));
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -70,11 +108,21 @@ namespace MapReduceApproach
         ///     {("Serialize", 1), ("Serialize", 1), ("Serialize", 1), ("Json", 1)}
         ///     {("Serialize", 1), (".NET", 1), ("deserialize", 1), ("object", 1)}
         /// shuffleOutput:
-        ///     {("Serialize", { 1, 1, 1, 1, 1}), ("Json", {1, 1}), (".NET", {1, 1}), ("deserialize", {1, 1}), ("object", {1}) }
+        ///     {("Serialize", { 1, 1, 1, 1, 1}), ("Json", {1, 1}), (".NET", {1, 1}), ("deserialize", {1, 1}), ("object", {1}) }.
         /// </example>
         private void Shuffle(IList<(string Key, int Value)> mapInput, IDictionary<string, IList<int>> shuffleOutput)
         {
-            throw new NotImplementedException();
+            foreach (var (key, value) in mapInput)
+            {
+                if (shuffleOutput.ContainsKey(key))
+                {
+                    shuffleOutput[key].Add(value);
+                }
+                else
+                {
+                    shuffleOutput.Add(key, new List<int> { value });
+                }
+            }
         }
 
         /// <summary>
@@ -84,11 +132,17 @@ namespace MapReduceApproach
         /// <returns>Sum of the list elements.</returns>
         /// <example> for a single word:
         /// wordFrequencyList: { 1, 1, 1, 1, 1}
-        /// result: 5
+        /// result: 5.
         /// </example>
         private int Reduce(IList<int> wordFrequencyList)
         {
-            throw new NotImplementedException();
+            int result = 0;
+            foreach (var frequency in wordFrequencyList)
+            {
+                result += frequency;
+            }
+
+            return result;
         }
     }
 }
